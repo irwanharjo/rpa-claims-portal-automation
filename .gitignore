@@ -1,0 +1,11 @@
+.env
+credentials.txt
+credentials.json
+token.json
+__pycache__/
+*.pyc
+Siap_Input/
+Selesai_Input/
+*.xlsx
+*.csv
+*.pdf

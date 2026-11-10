@@ -31,3 +31,7 @@ python robot_aps.py
 ## Stack
 
 Python · Selenium · pandas · pdfplumber · Tkinter
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for what changed after the first public version (production hardening notes).

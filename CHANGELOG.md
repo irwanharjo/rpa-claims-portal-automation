@@ -4,6 +4,32 @@ The public `robot_aps.py` is the July 2026 snapshot. The production robot kept e
 (it grew roughly 4x in size); the code itself stays private because it is tightly bound to a
 real client portal, but the engineering lessons are generic and are summarised here.
 
+## 2026-11-13 — Learned name dictionary + one-click operator confirmation (summary, code not published)
+
+- **Problem** — the portal masks the middle digits of participant IDs, so a name check is
+  required on top of masked ID + date + amount. The portal often spells names differently from
+  the source spreadsheet (first name only, joined words, initials, old spelling). In one day's
+  run about 45 documents stopped on name mismatches and had to be finished by hand.
+- **Why not just loosen the matcher** — replaying ~250k real "different person, same masked ID"
+  pairs showed every loosening rule tried (old-spelling normalisation, first-name-only, initials,
+  edit distance 2) raised wrong-person acceptances by 14% up to 4x.
+- **Learned dictionary instead** — the confirmation dialogs the robot already archives contain
+  the portal's own spelling next to the *unmasked* ID. Harvesting them gives "full ID → portal
+  spelling" for ~12k participants. A row is accepted only when its name column equals a known
+  spelling for that exact full ID. On the same replay: **0** extra wrong-person acceptances, and
+  56 of the 62 stopped rows would have been ticked automatically. IDs seen with two unrelated
+  names are ignored (fail closed).
+- **One-click confirmation** — when a name still doesn't match, the operator sees the candidate
+  rows (masked ID, date and amount already match) and picks the right one. The robot ticks it,
+  appends the spelling to the dictionary, and the queue continues. The question is never asked
+  when the robot is driven headless by the team portal.
+- **Smaller fixes** — whitespace inside IDs is stripped, every failed row gets its own log line
+  (a 500-character cap had hidden some), and all rejected candidates are reported, not just the
+  last one. The dictionary loads on the main thread: a background loader let Python's garbage
+  collector free Tk objects from the wrong thread, which crashed the test suite.
+- **Tests** — 43 new offline checks plus 7 mutation tests (each deliberately broken variant is
+  caught); existing gate, masking, untick and popup suites still pass.
+
 ## 2026-08 → 2026-11 — Production hardening (summary, code not published)
 
 - **Explicit waits instead of fixed `sleep()`** — clicks wait for the element to be ready, and

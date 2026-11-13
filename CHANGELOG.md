@@ -29,6 +29,15 @@ real client portal, but the engineering lessons are generic and are summarised h
   collector free Tk objects from the wrong thread, which crashed the test suite.
 - **Tests** — 43 new offline checks plus 7 mutation tests (each deliberately broken variant is
   caught); existing gate, masking, untick and popup suites still pass.
+- **Same-day fix after the first live run** — every operator confirmation (9 of 9) really did
+  tick the row, yet the robot reported "could not tick" and the amount gate stopped the document.
+  After the click the portal re-renders the table (the old element goes stale) or shows the
+  checked state late; the second read then found the row "already ticked" and assumed another
+  spreadsheet row owned it. The robot now remembers that *it* clicked, re-reads a fresh row
+  (matched by its claim code if the row text shifts), waits up to 8 s, and never clicks twice —
+  a second click would untick. The confirmed spelling is saved even when the tick can't be proven.
+  The old test fakes flipped the state instantly on the same element, which is why they passed;
+  the new fakes simulate stale elements and delayed state, and 6 mutation tests are all caught.
 
 ## 2026-08 → 2026-11 — Production hardening (summary, code not published)
 
